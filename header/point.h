@@ -2,6 +2,7 @@
 #define POINT_H
 
 #include <iostream>
+#include <cmath>
 
 class Point {
   int _x, _y;
@@ -44,8 +45,13 @@ public:
     return !(*this == p);
   }
 
-  Point inverse();
-  bool is_valid();
+  int dist(const Point& p) const {
+    return std::abs(_x - p._x) + std::abs(_y - p._y);
+  }
+
+  Point inverse() const;
+  Point rotate(int i) const;
+  bool is_valid() const;
   
 };
 
