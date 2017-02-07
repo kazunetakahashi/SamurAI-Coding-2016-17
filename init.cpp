@@ -12,6 +12,8 @@ vector<State>*** Game::_initial_state; // [samurai][x][y]
 random_device Game::RD;
 mt19937 Game::MT;
 
+#define DEBUG 0 // change 0 -> 1 if we need debug.
+
 void Game::init() {
   Point dx[4] = {
     Point(0, 1),
@@ -53,9 +55,9 @@ void Game::init() {
             }
           }
           Game::_initial_paint[k][i][j][l] = temp;
+#if DEBUG == 1
           cerr << "_initial_paint[" << k << "]["
                << i << "][" << j << "][" << l << "] = "; 
-#if DEBUG == 1
           for (auto x : temp) {
             cerr << x << " ";
           }

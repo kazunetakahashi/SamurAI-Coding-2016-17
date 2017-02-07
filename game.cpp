@@ -24,6 +24,7 @@ void Game::play() {
   before_start();
   // 完了
   cout << 0 << endl;
+  cerr << "aaa" << endl;
   // 各ターン
   for (; _now_turn < MY_TURN; ++_now_turn) {
     each_turn();
