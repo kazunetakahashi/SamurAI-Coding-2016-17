@@ -11,7 +11,7 @@ const int Game::PERIOD = Game::TURN/Game::SAMURAI;
 const int Game::FIELD = 15;
 const int Game::COST[10] = {0, 4, 4, 4, 4, 2, 2, 2, 2, 1};
 const int Game::MAX_COST = 7;
-const int Game::HOUGAKU = 4;
+const int Game::DIRECTION = 4;
 
 const vector<Point> YARI = {
   Point(0, 1),
@@ -37,3 +37,33 @@ const vector<Point> MASAKARI = {
 };
 const vector<Point> Game::PAINT[3] = {YARI, KATANA, MASAKARI};
 
+const Point Game::HOUSE[6] = {
+  Point(0, 0),
+  Point(0, 7),
+  Point(7, 0),
+  Point(14, 14),
+  Point(14, 7),
+  Point(7, 14)
+};
+
+int Game::command(int dir, Command obj) {
+  if (obj == _Hide_) {
+    return 9;
+  } else if (obj == _Paint_) {
+    return dir + 1;
+  } else { // obj == _Move_
+    return dir + 5;
+  }
+}
+
+int Game::samurai_to_player(int samurai) {
+  return samurai%3;
+}
+
+int Game::player_to_samurai(int player, bool is_mikata) {
+  if ((_is_sente && is_mikata) || (!_is_sente && !is_mikata)) {
+    return player;
+  } else {
+    return player + 3;
+  }
+}

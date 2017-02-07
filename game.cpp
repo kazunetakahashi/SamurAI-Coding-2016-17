@@ -1,34 +1,8 @@
-#include <iostream>
-#include <queue>
-
 #include "header/game.h"
 
-using namespace std;
+#define DEBUG 0 // change 0 -> 1 if we need debug.
 
-void init() {
-  // Game::rotate_paint の準備
-  Game::rotate_paint = new vector<Point>*[Game::PLAYER];
-  for (auto i = 0; i < Game::PLAYER; ++i) {
-    Game::rotate_paint[i] = new vector<Point>[Game::HOUGAKU];
-    for (auto j = 0; j < Game::HOUGAKU; ++j) {
-      for (auto x : Game::PAINT[i]) {
-        Game::rotate_paint[i][j].push_back(x.rotate(j));
-      }
-    }
-  }
-  // Game::initial_state の準備
-  Game::initial_state = new vector<State>**[Game::PLAYER];
-  for (auto k = 0; k < Game::PLAYER; ++k) {
-    Game::initial_state[k] = new vector<State>*[Game::FIELD];
-    for (auto i = 0; i < Game::FIELD; ++i) {
-      Game::initial_state[k][i] = new vector<State>[Game::FIELD];
-      for (auto j = 0; j < Game::FIELD; ++j) {
-        priority_queue<State, vector<State>, greater<State> > Q;
-        
-      }
-    }
-  }
-}
+using namespace std;
 
 void Game::input() {
   int t;
@@ -42,7 +16,7 @@ void Game::play() {
   // 完了
   cout << 0 << endl;
   // 各ターン
-  for (; now_turn < MY_TURN; ++now_turn) {
+  for (; _now_turn < MY_TURN; ++_now_turn) {
     each_turn();
   }
 }
@@ -52,11 +26,7 @@ void Game::before_start() {
 }
 
 void Game::each_turn() {
-  turns[now_turn].input();
+  _turns[_now_turn].input();
   think();
-  turns[now_turn].output();
-}
-
-void Game::think() {
-  // とりあえず空欄
+  _turns[_now_turn].output();
 }

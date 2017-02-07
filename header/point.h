@@ -2,6 +2,7 @@
 #define POINT_H
 
 #include <iostream>
+#include <string>
 #include <cmath>
 
 class Point {
@@ -52,6 +53,8 @@ public:
   Point inverse() const;
   Point rotate(int i) const;
   bool is_valid() const;
+  bool is_paintable() const;
+  bool is_movable(int samurai) const;
   
 };
 
