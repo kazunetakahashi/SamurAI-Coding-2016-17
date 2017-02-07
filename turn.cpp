@@ -8,6 +8,7 @@ Turn::Turn() : _field() {
   _has_done = new bool[Game::SAMURAI];
   _is_hidden = new bool[Game::SAMURAI];
   _treat_num = new int[Game::SAMURAI];
+  _states = new vector<State>[Game::PLAYER];
 }
 
 Turn::~Turn() {
@@ -15,6 +16,7 @@ Turn::~Turn() {
   delete[] _has_done;
   delete[] _is_hidden;
   delete[] _treat_num;
+  delete[] _states;
 }
 
 void Turn::input() {
@@ -31,9 +33,15 @@ void Turn::input() {
 }
 
 void Turn::output() {
-  cout << actor << " ";
-  for (auto x : act) {
+  cout << _actor << " ";
+  if (_hidden_to_revealed) {
+    cout << Game::command(0, _Hide_) << " ";
+  }
+  for (auto x : _act) {
     cout << x << " ";
+  }
+  if (_revealed_to_hidden) {
+    cout << Game::command(0, _Hide_) << " ";
   }
   cout << 0 << endl;
 }

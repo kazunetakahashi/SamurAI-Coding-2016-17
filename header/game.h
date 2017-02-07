@@ -2,6 +2,7 @@
 #define GAME_H
 
 #include <vector>
+#include <random>
 
 #include "point.h"
 #include "field.h"
@@ -11,21 +12,16 @@
 enum Command {_Paint_, _Move_, _Hide_};
 
 class Game {
-  // 
-private:
   bool _is_sente;
   Turn* _turns;
   int _now_turn;
 
 public:
-  Game() : _now_turn(0) {
-    _turns = new Turn[MY_TURN];
-  };
-  ~Game() {
-    delete[] _turns;
-  }
+  // game.cpp
+  Game();
+  ~Game();
   bool is_sente() const { return _is_sente; }
-  Turn* turns() const { return _turns; }
+  Turn turns(int t) const { return _turns[t]; }
   int now_turn() const { return _now_turn; }
 
   // constant.cpp
@@ -50,9 +46,14 @@ public:
 
   // init.cpp
   static void init();
-  static std::vector<Point>** rotate_paint; // [player][dir]
-  static std::vector<Point>**** initial_paint; // [player][x][y][dir]
-  static std::vector<State>*** initial_state; // [samurai][x][y]
+  static std::vector<Point>** _rotate_paint; // [player][dir]
+  static std::vector<Point>**** _initial_paint; // [player][x][y][dir]
+  static std::vector<State>*** _initial_state; // [samurai][x][y]
+  static std::vector<State> initial_state(int samurai, Point p) {
+    return _initial_state[samurai][p.x()][p.y()];
+  }
+  static std::random_device RD;
+  static std::mt19937 MT;
 
   // game.cpp
   void input();

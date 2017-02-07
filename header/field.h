@@ -12,7 +12,7 @@ public:
   
   void input();
   int value(int i, int j) { return _value[i][j]; }
-  int value(Point p) { return _value[p.x()][p.y()]; }
+  int value(Point p) { return value(p.x(), p.y()); }
   
 };
 

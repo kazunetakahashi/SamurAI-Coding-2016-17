@@ -5,6 +5,7 @@
 #include <vector>
 #include "point.h"
 #include "field.h"
+#include "state.h"
 
 class Turn {
   // 入力
@@ -14,6 +15,9 @@ class Turn {
   bool* _is_hidden;
   int* _treat_num;
   Field _field;
+
+  // 思考用
+  std::vector<State>* _states;
 
   // 出力
   int _actor;
@@ -26,12 +30,16 @@ public:
   ~Turn();
   void input();
   void output();
-  Point* point_samurai() { return _point_samurai; }
-  bool* has_done() { return _has_done; }
-  bool* is_hidden() { return _is_hidden; }
-  int* treat_num() { return _treat_num; };
-  Field& field() { return _field; }
+
+  Point point_samurai(int samurai) { return _point_samurai[samurai]; }
+  bool has_done(int samurai) { return _has_done[samurai]; }
+  bool is_hidden(int samurai) { return _is_hidden[samurai]; }
+  int treat_num(int samurai) { return _treat_num[samurai]; };
+  int field(Point p) { return _field.value(p); }
+  std::vector<State>& states(int player) { return _states[player]; }
   int& actor() { return _actor; }
+  bool& hidden_to_revealed() { return _hidden_to_revealed; }
+  bool& revealed_to_hidden() { return _revealed_to_hidden; }
   std::vector<int>& act() { return _act; }
   
 };

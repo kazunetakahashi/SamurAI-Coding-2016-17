@@ -4,6 +4,15 @@
 
 using namespace std;
 
+Game::Game() : _now_turn(0) {
+  _turns = new Turn[MY_TURN];
+};
+
+Game::~Game() {
+  delete[] _turns;
+}
+
+
 void Game::input() {
   int t;
   cin >> t;
