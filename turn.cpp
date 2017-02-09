@@ -3,6 +3,8 @@
 
 using namespace std;
 
+#define DEBUG 0
+
 Turn::Turn() : _field() {
   _point_samurai = new Point[Game::SAMURAI];
   _has_done = new bool[Game::SAMURAI];
@@ -20,6 +22,7 @@ Turn::~Turn() {
 }
 
 void Turn::input() {
+  // 入力
   cin >> _turn_num;
   for (auto i = 0; i < Game::SAMURAI; ++i) {
     cin >> _point_samurai[i];
@@ -30,6 +33,12 @@ void Turn::input() {
     cin >> _treat_num[i];
   }
   _field.input();
+  // 入力から作るもの
+  for (auto i = 0; i < Game::SAMURAI; ++i) {
+    if (is_visible(i)) {
+      _set_point_samurai.insert(point_samurai(i));
+    }
+  }
 }
 
 void Turn::output() {
@@ -46,3 +55,30 @@ void Turn::output() {
   cout << 0 << endl;
 }
 
+bool Turn::is_visible(int samurai) {
+  return point_samurai(samurai) != Game::INVISIBLE;
+}
+
+void Turn::remove_prohibited_states() {
+#if DEBUG == 1
+  cerr << "_set_point_samurai : ";
+  for (auto x : _set_point_samurai) {
+    cerr << x << " ";
+  }
+  cerr << endl;
+#endif
+  for (auto i = 0; i < Game::PLAYER; ++i) {
+    auto it = _states[i].begin();
+    while (it != _states[i].end()) {
+      if (it->route_has_key(_set_point_samurai)) {
+#if DEBUG == 1
+        cerr << "We erase %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
+        cerr << *it << endl;
+#endif
+        it = _states[i].erase(it);
+      } else {
+        ++it;
+      }
+    }
+  }
+}

@@ -46,6 +46,16 @@ public:
     return !(*this == p);
   }
 
+  bool operator<(const Point& p) const {
+    if (_x == p._x) return _y < p._y;
+    return _x < p._x;
+  }
+
+  bool operator>(const Point& p) const {
+    if (_x == p._x) return _y > p._y;
+    return _x > p._x;
+  }
+
   int dist(const Point& p) const {
     return std::abs(_x - p._x) + std::abs(_y - p._y);
   }

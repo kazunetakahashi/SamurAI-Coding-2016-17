@@ -88,7 +88,8 @@ void Game::init() {
               next.initial_cost() += Game::cost(l, _Paint_);
               if (next.initial_cost() > Game::MAX_COST) continue;
               // コストが全部同じなので、上で判定したほうが枝刈りは効率いい。
-              next.paint() = Game::_initial_paint[player][i][j][l];
+              next.paint() = Game::_initial_paint
+                [player][now.goal().x()][now.goal().y()][l];
               next.act().push_back(Game::command(l, _Paint_));
               Q.push(next);
             }

@@ -1,6 +1,8 @@
 _study/
 _playground/
+_zip/
 send.rb
+zip.rb
 
 # Compiled Object files
 *.slo

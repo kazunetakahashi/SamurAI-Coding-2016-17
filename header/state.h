@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <set>
 #include "point.h"
 
 class State {
@@ -34,6 +35,8 @@ public:
   Point start() const { return *_route.begin(); }
   Point goal() const { return *(_route.end()-1); }
   bool does_paint() const { return !(_paint.empty()); }
+  
+  bool route_has_key(const std::set<Point>& S);
 
   friend bool operator<(const State& left, const State& right) {
     return (left._initial_cost < right._initial_cost);

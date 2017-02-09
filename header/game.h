@@ -37,6 +37,7 @@ public:
   const static int DIRECTION;
   const static std::vector<Point> PAINT[];
   const static Point HOUSE[];
+  const static Point INVISIBLE;
   static int command(int dir, Command obj);
   inline static int cost(int dir, Command obj) {
     return COST[command(dir, obj)];
@@ -62,8 +63,9 @@ public:
   void each_turn();
 
   // think.cpp
+  Turn& current() { return _turns[_now_turn]; }
   void think();
-  
+  void inform_turn();
 };
 
 #endif /* GAME_H */

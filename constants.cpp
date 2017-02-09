@@ -46,6 +46,8 @@ const Point Game::HOUSE[6] = {
   Point(7, 14)
 };
 
+const Point Game::INVISIBLE = Point(-1, -1);
+
 int Game::command(int dir, Command obj) {
   if (obj == _Hide_) {
     return 9;
