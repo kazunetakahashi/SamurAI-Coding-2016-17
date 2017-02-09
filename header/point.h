@@ -12,8 +12,8 @@ public:
   Point() {};
   Point(int x, int y) : _x(x), _y(y) {};
   
-  int x() const { return _x; };
-  int y() const { return _y; };
+  int x() const { return _x; }
+  int y() const { return _y; }
 
   Point operator+() const { return *this; }
   Point operator-() const { return Point(-_x, -_y); }

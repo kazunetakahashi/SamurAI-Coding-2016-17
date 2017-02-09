@@ -31,4 +31,5 @@ void Game::inform_turn() {
                                       current().point_samurai(k));
   }
   current().remove_prohibited_states();
+  current().calc_kill_enemy();
 }

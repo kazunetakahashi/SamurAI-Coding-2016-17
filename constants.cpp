@@ -69,3 +69,7 @@ int Game::player_to_samurai(int player, bool is_mikata) {
     return player + 3;
   }
 }
+
+int Game::player_to_enemy(int player) {
+  return player + 3;
+}

@@ -43,6 +43,7 @@ public:
     return COST[command(dir, obj)];
   }
   static int samurai_to_player(int samurai);
+  static int player_to_enemy(int player);
   int player_to_samurai(int player, bool is_mikata = true);
 
   // init.cpp

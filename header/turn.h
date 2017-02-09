@@ -19,6 +19,7 @@ class Turn {
 
   // 入力から作るもの
   std::set<Point> _set_point_samurai;
+  std::set<Point> _set_point_enemy;
 
   // 思考用
   std::vector<State>* _states;
@@ -51,6 +52,7 @@ public:
 
   // 思考用メンバ関数
   void remove_prohibited_states();
+  void calc_kill_enemy();
   
 };
 

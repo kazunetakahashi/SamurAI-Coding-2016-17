@@ -39,6 +39,12 @@ void Turn::input() {
       _set_point_samurai.insert(point_samurai(i));
     }
   }
+  for (auto i = 0; i < Game::PLAYER; ++i) {
+    int enemy = Game::player_to_enemy(i);
+    if (is_visible(enemy)) {
+      _set_point_enemy.insert(point_samurai(enemy));
+    }
+  }
 }
 
 void Turn::output() {
@@ -60,25 +66,24 @@ bool Turn::is_visible(int samurai) {
 }
 
 void Turn::remove_prohibited_states() {
-#if DEBUG == 1
-  cerr << "_set_point_samurai : ";
-  for (auto x : _set_point_samurai) {
-    cerr << x << " ";
-  }
-  cerr << endl;
-#endif
   for (auto i = 0; i < Game::PLAYER; ++i) {
+    if (has_done(i)) continue;
     auto it = _states[i].begin();
     while (it != _states[i].end()) {
       if (it->route_has_key(_set_point_samurai)) {
-#if DEBUG == 1
-        cerr << "We erase %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << endl;
-        cerr << *it << endl;
-#endif
         it = _states[i].erase(it);
       } else {
         ++it;
       }
     }
   }
+}
+
+void Turn::calc_kill_enemy() {
+  for (auto i = 0; i < Game::PLAYER; ++i) {
+    if (has_done(i)) continue;
+    for (auto it = _states[i].begin(); it != _states[i].end(); ++it) {
+      it->count_kill_enemy(_set_point_enemy);
+    }
+  }  
 }

@@ -7,10 +7,14 @@
 #include "point.h"
 
 class State {
+  // 行動の内容
   std::vector<Point> _route;
   std::vector<Point> _paint;
   int _initial_cost;
   std::vector<int> _act;
+
+  // 判断の枠組み
+  int _kill_enemy;  
 
 public:
   State() {};
@@ -31,12 +35,14 @@ public:
   std::vector<Point>& paint() { return _paint; }
   int& initial_cost() { return _initial_cost; }
   std::vector<int>& act() { return _act; }
+  int& kill_enemy() { return _kill_enemy; }
   
   Point start() const { return *_route.begin(); }
   Point goal() const { return *(_route.end()-1); }
   bool does_paint() const { return !(_paint.empty()); }
   
   bool route_has_key(const std::set<Point>& S);
+  int count_kill_enemy(const std::set<Point>& S);  
 
   friend bool operator<(const State& left, const State& right) {
     return (left._initial_cost < right._initial_cost);
