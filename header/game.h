@@ -38,18 +38,20 @@ public:
   const static std::vector<Point> PAINT[];
   const static Point HOUSE[];
   const static Point INVISIBLE;
+  const static Point dx[];
   static int command(int dir, Command obj);
-  inline static int cost(int dir, Command obj) {
+  static int cost(int dir, Command obj) {
     return COST[command(dir, obj)];
   }
   static int samurai_to_player(int samurai);
   static int player_to_enemy(int player);
-  int player_to_samurai(int player, bool is_mikata = true);
+  int player_to_samurai(int player, bool is_mikata = true); // init だけ
 
   // init.cpp
   static void init();
   static std::vector<Point>** _rotate_paint; // [player][dir]
   static std::vector<Point>**** _initial_paint; // [player][x][y][dir]
+  static std::set<Point>**** _set_initial_paint;
   static std::vector<State>*** _initial_state; // [samurai][x][y]
   static std::vector<State> initial_state(int samurai, Point p) {
     return _initial_state[samurai][p.x()][p.y()];
@@ -65,8 +67,18 @@ public:
 
   // think.cpp
   Turn& current() { return _turns[_now_turn]; }
+  Turn& previous() { return _turns[_now_turn-1]; }
   void think();
   void inform_turn();
+  void inform_current_and_previous();
+  int calc_acted_enemy();
+  int calc_acted_enemy_0();
+  void calc_kappa();
+  void calc_point_enemy();
+  void calc_point_enemy_0();
+  void calc_point_enemy_acted(int player);
+  void calc_point_enemy_by_dijkstra(int player, std::vector<Point>& V);
+  void calc_point_enemy_by_sat(int player);
 };
 
 #endif /* GAME_H */

@@ -7,6 +7,7 @@ using namespace std;
 
 vector<Point>** Game::_rotate_paint; // [player][dir]
 vector<Point>**** Game::_initial_paint; // [player][x][y][dir]
+set<Point>**** Game::_set_initial_paint; // [player][x][y][dir]
 vector<State>*** Game::_initial_state; // [samurai][x][y]
 
 random_device Game::RD;
@@ -15,12 +16,6 @@ mt19937 Game::MT;
 #define DEBUG 0 // change 0 -> 1 if we need debug.
 
 void Game::init() {
-  Point dx[4] = {
-    Point(0, 1),
-    Point(1, 0),
-    Point(0, -1),
-    Point(-1, 0),
-  };
   // Game::_rotate_paint の準備
   Game::_rotate_paint = new vector<Point>*[Game::PLAYER];
   for (auto i = 0; i < Game::PLAYER; ++i) {
@@ -39,22 +34,29 @@ void Game::init() {
   }
   // Game::_initial_paint の準備
   Game::_initial_paint = new vector<Point>***[Game::PLAYER];
+  Game::_set_initial_paint = new set<Point>***[Game::PLAYER];
   for (auto k = 0; k < Game::PLAYER; ++k) {
     Game::_initial_paint[k] = new vector<Point>**[Game::FIELD];
+    Game::_set_initial_paint[k] = new set<Point>**[Game::FIELD];
     for (auto i = 0; i < Game::FIELD; ++i) {
       Game::_initial_paint[k][i] = new vector<Point>*[Game::FIELD];
+      Game::_set_initial_paint[k][i] = new set<Point>*[Game::FIELD];
       for (auto j = 0; j < Game::FIELD; ++j) {
         Game::_initial_paint[k][i][j] = new vector<Point>[Game::DIRECTION];
+        Game::_set_initial_paint[k][i][j] = new set<Point>[Game::DIRECTION];
         Point now(i, j);
         for (auto l = 0; l < Game::DIRECTION; ++l) {
           vector<Point> temp;
+          set<Point> S;
           for (auto x : Game::_rotate_paint[k][l]) {
             x += now;
             if (x.is_valid() && x.is_paintable()) {
               temp.push_back(x);
+              S.insert(x);
             }
           }
           Game::_initial_paint[k][i][j][l] = temp;
+          Game::_set_initial_paint[k][i][j][l] = S;
 #if DEBUG == 1
           cerr << "_initial_paint[" << k << "]["
                << i << "][" << j << "][" << l << "] = "; 
@@ -127,3 +129,4 @@ void Game::init() {
   RD();
   MT = mt19937(RD());
 }
+

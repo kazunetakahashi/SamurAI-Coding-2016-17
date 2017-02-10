@@ -10,6 +10,25 @@ Turn::Turn() : _field() {
   _has_done = new bool[Game::SAMURAI];
   _is_hidden = new bool[Game::SAMURAI];
   _treat_num = new int[Game::SAMURAI];
+
+  _kappa = new bool***[3];
+  for (auto k = 0; k < 3; ++k) {
+    _kappa[k] = new bool**[Game::PLAYER];
+    for (auto i = 0; i < Game::PLAYER; ++i) {
+      _kappa[k][i] = new bool*[Game::FIELD];
+      for (auto j = 0; j < Game::FIELD; ++j) {
+        _kappa[k][i][j] = new bool[Game::FIELD];
+      }
+    }
+  }
+
+  _point_enemy = new vector<Point>[Game::PLAYER];
+  _is_remained = new bool[Game::PLAYER];
+
+  _beta = new bool*[Game::FIELD];
+  for (auto i = 0; i < Game::FIELD; ++i) {
+    _beta[i] = new bool[Game::PLAYER];
+  }
   _states = new vector<State>[Game::PLAYER];
 }
 
@@ -18,6 +37,25 @@ Turn::~Turn() {
   delete[] _has_done;
   delete[] _is_hidden;
   delete[] _treat_num;
+  
+  for (auto k = 0; k < 3; ++k) {
+    for (auto i = 0; i < Game::PLAYER; ++i) {
+      for (auto j = 0; j < Game::FIELD; ++j) {
+        delete[] _kappa[k][i][j];
+      }
+      delete[] _kappa[k][i];
+    }
+    delete[] _kappa[k];
+  }
+  delete[] _kappa;
+
+  delete[] _point_enemy;
+  delete[] _is_remained;  
+
+  for (auto i = 0; i < Game::FIELD; ++i) {
+    delete[] _beta[i];
+  }
+  delete[] _beta;
   delete[] _states;
 }
 
