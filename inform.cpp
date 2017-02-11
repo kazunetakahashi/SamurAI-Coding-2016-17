@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <tuple>
 #include <queue>
+#include <cassert>
 
 #include "header/game.h"
 
@@ -24,57 +25,49 @@ void Game::inform() {
   } else {
     calc_point_enemy();
   }
-  // point_enemy -> set_point_enemy
+  // point_enemy -> set_point_enemy, base_prob
   for (auto i = 0; i < PLAYER; ++i) {
     for (auto x : current().point_enemy(i)) {
       current().set_point_enemy(i).insert(x);
     }
+    assert(!current().point_enemy(i).empty());
+    current().base_prob(i) = 1.0/(double)current().point_enemy(i).size();
   }
 }
 
 int Game::calc_acted_enemy_0() {
   if (_is_sente) return current().acted_enemy() = -1;
-  for (auto i = 0; i < PLAYER; ++i) {
-    int enemy = player_to_enemy(i);
-    if (current().has_done(enemy)) {
-      return current().acted_enemy() = i;
-    }
-  }
-  return current().acted_enemy() = -1;
+  return  current().acted_enemy() = calc_acted_enemy();
 }
 
 int Game::calc_acted_enemy() {
-  bool is_there_done = false;
-  for (auto i = 0; i < PLAYER; ++i) {
-    int enemy = player_to_enemy(i);
-    if (current().has_done(enemy)) {
-      is_there_done = true;
-      break;
+  if (current().done_enemy().empty()) {
+    for (auto i = 0; i < PLAYER; ++i) {
+      if (previous().done_enemy().find(i) == previous().done_enemy().end()) {
+        return current().acted_enemy() = i;
+      }
     }
-  }
-  if (is_there_done) {
+  } else if ((int)current().done_enemy().size() == 1) {
+    return current().acted_enemy() = *(current().done_enemy().begin());
+  } else {
     for (auto i = 0; i < PLAYER; ++i) {
       int enemy = player_to_enemy(i);
       if (!previous().has_done(enemy) && current().has_done(enemy)) {
         return current().acted_enemy() = i;
       }
     }
-    return current().acted_enemy() = -1;
-  } else {
-    for (auto i = 0; i < PLAYER; ++i) {
-      int enemy = player_to_enemy(i);
-      if (!previous().has_done(enemy)) {
-        return current().acted_enemy() = i;
-      }
-    }
-    return current().acted_enemy() = -1;
   }
+  assert(false);
+  return current().acted_enemy() = -1;
 }
 
 void Game::calc_kappa() {
   for (auto player = 0; player < Game::PLAYER; ++player) {
+    int enemy = player_to_enemy(player);
     int samurai = player_to_samurai(player, false);
-    if (player != current().acted_enemy() && now_turn() >= 1) {
+    if (player != current().acted_enemy()
+        && !current().is_killed(enemy)
+        && now_turn() >= 1) {
       for (auto i = 0; i < Game::FIELD; ++i) {
         for (auto j = 0; j < Game::FIELD; ++j) {
           current().kappa(_Watched_, player, i, j)
@@ -256,7 +249,7 @@ void Game::calc_point_enemy_by_dijkstra(int player, Pqueue& Q) {
 
 void Game::calc_point_enemy_by_sat(int player) {
   // int enemy = player_to_enemy(player);
-  int samurai = player_to_samurai(player, false);
+  // int samurai = player_to_samurai(player, false);
   // beta, delta 作成 (よく考えたら delta と beta は同じでした)
   for (auto i = 0; i < Game::FIELD; ++i) {
     for (auto j = 0; j < Game::FIELD; ++j) {

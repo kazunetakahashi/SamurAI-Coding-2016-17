@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <set>
+#include <iomanip>
 #include "point.h"
 #include "field.h"
 #include "state.h"
@@ -23,12 +24,13 @@ class Turn {
   // 入力から作るもの
   bool* _is_killed;
   std::set<Point> _set_point_samurai;
-  // std::set<Point> _set_point_enemy;
+  std::set<int> _done_enemy;
 
   // 前回までの入力も踏まえて作るもの
   int _acted_enemy; // 0...2 player 型
   std::vector<Point>* _point_enemy;
   std::set<Point>* _set_point_enemy;
+  double* _base_prob;
   bool* _is_remained;
 
   // 思考用
@@ -37,6 +39,7 @@ class Turn {
   std::vector<Point> _delta;
   bool**** _kappa;
   std::vector<State>* _states;
+  double*** _table_pre_paint_score;
 
   // 出力
   int _actor;
@@ -51,16 +54,16 @@ public:
   void output();
 
   // ゲッタとセッタ
-  Point point_samurai(int samurai) { return _point_samurai[samurai]; }
+  Point& point_samurai(int samurai) { return _point_samurai[samurai]; }
   bool is_visible(int samurai);
   bool has_done(int samurai) { return _has_done[samurai]; }
-  bool is_hidden(int samurai) { return _is_hidden[samurai]; }
+  bool& is_hidden(int samurai) { return _is_hidden[samurai]; }
   int treat_num(int samurai) { return _treat_num[samurai]; }
-  bool is_killed(int samurai) { return _is_killed[samurai]; }
   int field(Point p) { return _field.value(p); }
   
+  bool is_killed(int samurai) { return _is_killed[samurai]; }
   std::set<Point>& set_point_samurai() { return _set_point_samurai; }
-  // std::set<Point>& set_point_enemy() { return _set_point_enemy; }
+  std::set<int>& done_enemy() { return _done_enemy; }
 
   int& acted_enemy() { return _acted_enemy; }
   std::vector<Point>& point_enemy(int player) {
@@ -68,6 +71,9 @@ public:
   }
   std::set<Point>& set_point_enemy(int player) {
     return _set_point_enemy[player];
+  }
+  double& base_prob(int player) {
+    return _base_prob[player];
   }
   bool& is_remained(int player) {
     return _is_remained[player];
@@ -84,6 +90,13 @@ public:
     return kappa(type, player, p.x(), p.y());
   }
   std::vector<State>& states(int player) { return _states[player]; }
+  double& table_pre_paint_score(int player, int x, int y) {
+    return _table_pre_paint_score[player][x][y];
+  }
+  double& table_pre_paint_score(int player, const Point p) {
+    return table_pre_paint_score(player, p.x(), p.y());
+  }
+  
   int& actor() { return _actor; }
   bool& hidden_to_revealed() { return _hidden_to_revealed; }
   bool& revealed_to_hidden() { return _revealed_to_hidden; }
@@ -93,13 +106,19 @@ public:
   void evaluate();
   void remove_prohibited_states();
   void calc_paint_score(State& state);
-  void calc_hidden_booleans(int& player, State& state);
+  double calc_pre_paint_score(State& state);
+  void calc_hidden_booleans(State& state);
   void calc_kill_score(State& state);
   void calc_death_prob(State& state);
-
+  void calc_total_score(State& state);
   // death_prob.cpp
   static double death_prob(int player,
                            Point p, Point q, bool is_hidden);
+  // choose.cpp
+  void choose();
+  void set_act(int player, std::vector<int>& act, bool h_r, bool r_h);
+  void trivial_act(int player);
+  void choose_actor_and_act();
 
   // Field からの輸入
   bool is_perceived(int i, int j) const {
@@ -127,16 +146,66 @@ public:
     return is_enemy_color(player, p.x(), p.y());
   }
 
-
-  // メンバ関数で表現されるギリシア文字
-  /*
-  bool lambda(int i, int j) {
-    return is_perceived(i, j) && !is_occupied_by_enemy(i, j);
+  friend std::ostream& operator<<(std::ostream& s,
+                                  const Turn& turn) {
+    s << "_point_samurai : ";
+    for (auto i = 0; i < 6; ++i) {
+      s << turn._point_samurai[i] << " ";
+    }
+    s << std::endl;
+    s << "_has_done : ";
+    for (auto i = 0; i < 6; ++i) {
+      s << turn._has_done[i] << " ";
+    }
+    s << std::endl;
+    s << "_is_hidden : ";
+    for (auto i = 0; i < 6; ++i) {
+      s << turn._is_hidden[i] << " ";
+    }
+    s << std::endl;
+    s << "_treat_num : ";
+    for (auto i = 0; i < 6; ++i) {
+      s << turn._treat_num[i] << " ";
+    }
+    s << std::endl;
+    s << "_is_killed : ";
+    for (auto i = 0; i < 6; ++i) {
+      s << turn._is_killed[i] << " ";
+    }
+    s << std::endl;
+    s << "_set_point_samurai : ";
+    for (auto x : turn._set_point_samurai) {
+      s << x << " ";
+    }
+    s << std::endl;
+    s << "_acted_enemy : " << turn._acted_enemy << std::endl;
+    for (auto i = 0; i < 3; ++i) {
+      s << "_point_enemy[" << i << "] : ";
+      for (auto x : turn._point_enemy[i]) {
+        s << x << " ";
+      }
+      s << std::endl;
+    }
+    /*
+    for (auto i = 0; i < 3; ++i) {
+      s << "_set_point_enemy[" << i << "] : ";
+      for (auto x : turn._set_point_enemy[i]) {
+        s << x << " ";
+      }
+      s << std::endl;
+    }
+    */
+    for (auto i = 0; i < 3; ++i) {
+      s << "_base_prob[" << i << "] : "
+        << std::fixed << std::setprecision(3)
+        << turn._base_prob[i] << std::endl;
+    }
+    for (auto i = 0; i < 3; ++i) {
+      s << "_is_remained[" << i << "] : "
+        << turn._is_remained[i] << std::endl;
+    }
+    return s;
   }
-  bool lambda(Point p) {
-    return lambda(p.x(), p.y());
-  }
-  */
 
 };
 

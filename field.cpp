@@ -20,7 +20,7 @@ Field::~Field() {
 void Field::input() {
   for (auto i = 0; i < Game::FIELD; ++i) {
     for (auto j = 0; j < Game::FIELD; ++j) {
-      cin >> _value[i][j];
+      cin >> _value[j][i];
     }
   }
 }

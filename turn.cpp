@@ -10,7 +10,12 @@ Turn::Turn() : _field() {
   _has_done = new bool[Game::SAMURAI];
   _is_hidden = new bool[Game::SAMURAI];
   _treat_num = new int[Game::SAMURAI];
+  
   _is_killed = new bool[Game::SAMURAI];
+  _point_enemy = new vector<Point>[Game::PLAYER];
+  _set_point_enemy = new set<Point>[Game::PLAYER];
+  _base_prob = new double[Game::PLAYER];
+  _is_remained = new bool[Game::PLAYER];
 
   _kappa = new bool***[_Kappatypesize_];
   for (auto k = 0; k < _Kappatypesize_; ++k) {
@@ -22,15 +27,18 @@ Turn::Turn() : _field() {
       }
     }
   }
-
-  _point_enemy = new vector<Point>[Game::PLAYER];
-  _is_remained = new bool[Game::PLAYER];
-
   _beta = new bool*[Game::FIELD];
   for (auto i = 0; i < Game::FIELD; ++i) {
     _beta[i] = new bool[Game::PLAYER];
   }
   _states = new vector<State>[Game::PLAYER];
+  _table_pre_paint_score = new double**[Game::PLAYER];
+  for (auto i = 0; i < Game::PLAYER; ++i) {
+    _table_pre_paint_score[i] = new double*[Game::FIELD];
+    for (auto j = 0; j < Game::FIELD; ++j) {
+      _table_pre_paint_score[i][j] = new double[Game::FIELD];
+    }
+  }
 }
 
 Turn::~Turn() {
@@ -38,8 +46,18 @@ Turn::~Turn() {
   delete[] _has_done;
   delete[] _is_hidden;
   delete[] _treat_num;
-  
-  for (auto k = 0; k < _Kappatypesize_; ++k) {
+
+  delete[] _is_killed;
+  delete[] _point_enemy;
+  delete[] _set_point_enemy;
+  delete[] _base_prob;
+  delete[] _is_remained;  
+
+  for (auto i = 0; i < Game::FIELD; ++i) {
+    delete[] _beta[i];
+  }
+  delete[] _beta;
+    for (auto k = 0; k < _Kappatypesize_; ++k) {
     for (auto i = 0; i < Game::PLAYER; ++i) {
       for (auto j = 0; j < Game::FIELD; ++j) {
         delete[] _kappa[k][i][j];
@@ -49,15 +67,14 @@ Turn::~Turn() {
     delete[] _kappa[k];
   }
   delete[] _kappa;
-
-  delete[] _point_enemy;
-  delete[] _is_remained;  
-
-  for (auto i = 0; i < Game::FIELD; ++i) {
-    delete[] _beta[i];
-  }
-  delete[] _beta;
   delete[] _states;
+  for (auto i = 0; i < Game::PLAYER; ++i) {
+    for (auto j = 0; j < Game::FIELD; ++j) {
+      delete[] _table_pre_paint_score[i][j];
+    }
+    delete[] _table_pre_paint_score[i];
+  }
+  delete[] _table_pre_paint_score;
 }
 
 void Turn::input() {
@@ -83,14 +100,13 @@ void Turn::input() {
       _is_killed[i] = false;
     }
   }
-  /*
   for (auto i = 0; i < Game::PLAYER; ++i) {
     int enemy = Game::player_to_enemy(i);
-    if (is_visible(enemy)) {
-      _set_point_enemy.insert(point_samurai(enemy));
+    if (has_done(enemy)) {
+      _done_enemy.insert(i);
     }
   }
-  */
+
 }
 
 void Turn::output() {
