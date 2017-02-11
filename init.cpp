@@ -16,47 +16,47 @@ mt19937 Game::MT;
 #define DEBUG 0 // change 0 -> 1 if we need debug.
 
 void Game::init() {
-  // Game::_rotate_paint の準備
-  Game::_rotate_paint = new vector<Point>*[Game::PLAYER];
-  for (auto i = 0; i < Game::PLAYER; ++i) {
-    Game::_rotate_paint[i] = new vector<Point>[Game::DIRECTION];
-    for (auto j = 0; j < Game::DIRECTION; ++j) {
+  // _rotate_paint の準備
+  _rotate_paint = new vector<Point>*[PLAYER];
+  for (auto i = 0; i < PLAYER; ++i) {
+    _rotate_paint[i] = new vector<Point>[DIRECTION];
+    for (auto j = 0; j < DIRECTION; ++j) {
 #if DEBUG == 1
-      cerr << "Game::_rotate_paint[" << i << "][" << j << "]" << endl;
+      cerr << "_rotate_paint[" << i << "][" << j << "]" << endl;
 #endif
-      for (auto x : Game::PAINT[i]) {
-        Game::_rotate_paint[i][j].push_back(x.rotate(j));
+      for (auto x : PAINT[i]) {
+        _rotate_paint[i][j].push_back(x.rotate(j));
 #if DEBUG == 1
         cerr << x.rotate(j) << " <- " << x << endl;
 #endif
       }
     }
   }
-  // Game::_initial_paint の準備
-  Game::_initial_paint = new vector<Point>***[Game::PLAYER];
-  Game::_set_initial_paint = new set<Point>***[Game::PLAYER];
-  for (auto k = 0; k < Game::PLAYER; ++k) {
-    Game::_initial_paint[k] = new vector<Point>**[Game::FIELD];
-    Game::_set_initial_paint[k] = new set<Point>**[Game::FIELD];
-    for (auto i = 0; i < Game::FIELD; ++i) {
-      Game::_initial_paint[k][i] = new vector<Point>*[Game::FIELD];
-      Game::_set_initial_paint[k][i] = new set<Point>*[Game::FIELD];
-      for (auto j = 0; j < Game::FIELD; ++j) {
-        Game::_initial_paint[k][i][j] = new vector<Point>[Game::DIRECTION];
-        Game::_set_initial_paint[k][i][j] = new set<Point>[Game::DIRECTION];
+  // _initial_paint の準備
+  _initial_paint = new vector<Point>***[PLAYER];
+  _set_initial_paint = new set<Point>***[PLAYER];
+  for (auto k = 0; k < PLAYER; ++k) {
+    _initial_paint[k] = new vector<Point>**[FIELD];
+    _set_initial_paint[k] = new set<Point>**[FIELD];
+    for (auto i = 0; i < FIELD; ++i) {
+      _initial_paint[k][i] = new vector<Point>*[FIELD];
+      _set_initial_paint[k][i] = new set<Point>*[FIELD];
+      for (auto j = 0; j < FIELD; ++j) {
+        _initial_paint[k][i][j] = new vector<Point>[DIRECTION];
+        _set_initial_paint[k][i][j] = new set<Point>[DIRECTION];
         Point now(i, j);
-        for (auto l = 0; l < Game::DIRECTION; ++l) {
+        for (auto l = 0; l < DIRECTION; ++l) {
           vector<Point> temp;
           set<Point> S;
-          for (auto x : Game::_rotate_paint[k][l]) {
+          for (auto x : _rotate_paint[k][l]) {
             x += now;
             if (x.is_valid() && x.is_paintable()) {
               temp.push_back(x);
               S.insert(x);
             }
           }
-          Game::_initial_paint[k][i][j][l] = temp;
-          Game::_set_initial_paint[k][i][j][l] = S;
+          _initial_paint[k][i][j][l] = temp;
+          _set_initial_paint[k][i][j][l] = S;
 #if DEBUG == 1
           cerr << "_initial_paint[" << k << "]["
                << i << "][" << j << "][" << l << "] = "; 
@@ -69,14 +69,14 @@ void Game::init() {
       }
     }
   }
-  // Game::_initial_state の準備
-  Game::_initial_state = new vector<State>**[Game::SAMURAI];
-  for (auto k = 0; k < Game::SAMURAI; ++k) {
-    int player = Game::samurai_to_player(k);
-    Game::_initial_state[k] = new vector<State>*[Game::FIELD];
-    for (auto i = 0; i < Game::FIELD; ++i) {
-      Game::_initial_state[k][i] = new vector<State>[Game::FIELD];
-      for (auto j = 0; j < Game::FIELD; ++j) {
+  // _initial_state の準備
+  _initial_state = new vector<State>**[SAMURAI];
+  for (auto k = 0; k < SAMURAI; ++k) {
+    int player = samurai_to_player(k);
+    _initial_state[k] = new vector<State>*[FIELD];
+    for (auto i = 0; i < FIELD; ++i) {
+      _initial_state[k][i] = new vector<State>[FIELD];
+      for (auto j = 0; j < FIELD; ++j) {
         priority_queue<State, vector<State>, greater<State> > Q;
         State nothing(Point(i, j), 0);
         Q.push(nothing);
@@ -85,26 +85,30 @@ void Game::init() {
           Q.pop();
           _initial_state[k][i][j].push_back(now);
           if (now.paint().empty()) {
-            for (auto l = 0; l < Game::DIRECTION; ++l) { // 塗り
+            for (auto l = 0; l < DIRECTION; ++l) { // 塗り
               State next = now;
-              next.initial_cost() += Game::cost(l, _Paint_);
-              if (next.initial_cost() > Game::MAX_COST) continue;
+              next.initial_cost() += cost(l, _Paint_);
+              if (next.initial_cost() > MAX_COST) continue;
               // コストが全部同じなので、上で判定したほうが枝刈りは効率いい。
-              next.paint() = Game::_initial_paint
+              next.paint()
+                = _initial_paint
                 [player][now.goal().x()][now.goal().y()][l];
-              next.act().push_back(Game::command(l, _Paint_));
+              next.set_paint()
+                = _set_initial_paint
+                [player][now.goal().x()][now.goal().y()][l];
+              next.act().push_back(command(l, _Paint_));
               Q.push(next);
             }
           }
-          for (auto l = 0; l < Game::DIRECTION; ++l) {
+          for (auto l = 0; l < DIRECTION; ++l) {
             Point dst = now.goal() + dx[l];
             if (dst.is_valid() && dst.is_movable(k)
                 && dst.dist(now.start()) == (int)now.route().size()) {
               State next = now;
-              next.initial_cost() += Game::cost(l, _Move_);
-              if (next.initial_cost() > Game::MAX_COST) continue;            
+              next.initial_cost() += cost(l, _Move_);
+              if (next.initial_cost() > MAX_COST) continue;            
               next.route().push_back(dst);
-              next.act().push_back(Game::command(l, _Move_));
+              next.act().push_back(command(l, _Move_));
               Q.push(next);
             }
           }
@@ -113,12 +117,12 @@ void Game::init() {
     }
   }
 #if DEBUG == 1
-  for (auto k = 0; k < Game::SAMURAI; ++k) {
-    for (auto i = 0; i < Game::FIELD; ++i) {
-      for (auto j = 0; j < Game::FIELD; ++j) {
-        cerr << "Game::_initial_state[" << k << "][" << i << "]["
+  for (auto k = 0; k < SAMURAI; ++k) {
+    for (auto i = 0; i < FIELD; ++i) {
+      for (auto j = 0; j < FIELD; ++j) {
+        cerr << "_initial_state[" << k << "][" << i << "]["
              << j << "]" << endl;
-        for (auto x : Game::_initial_state[k][i][j]) {
+        for (auto x : _initial_state[k][i][j]) {
           cerr << x << endl;
         }
       }

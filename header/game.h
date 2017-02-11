@@ -47,6 +47,7 @@ public:
   const static int DIRECTION;
   const static std::vector<Point> PAINT[];
   const static Point HOUSE[];
+  const static int REACH[];
   const static Point INVISIBLE;
   const static Point dx[];
   static int command(int dir, Command obj);
@@ -79,8 +80,8 @@ public:
   Turn& current() { return _turns[_now_turn]; }
   Turn& previous() { return _turns[_now_turn-1]; }
   void think();
-  void inform_turn();
-  void inform_current_and_previous();
+  // inform.cpp
+  void inform();
   int calc_acted_enemy();
   int calc_acted_enemy_0();
   void calc_kappa();

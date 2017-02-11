@@ -6,19 +6,29 @@
 
 using namespace std;
 
-# define DEBUG 1
+#define DEBUG 1
 
-void Game::inform_current_and_previous() {
-  if (now_turn() == 0) {
-    Game::calc_acted_enemy_0();
-  } else {
-    Game::calc_acted_enemy();
+void Game::inform() {
+  for (auto k = 0; k < PLAYER; ++k) {
+    current().states(k)
+      = initial_state(player_to_samurai(k), current().point_samurai(k));
   }
-  Game::calc_kappa();
   if (now_turn() == 0) {
-    Game::calc_point_enemy_0();
+    calc_acted_enemy_0();
   } else {
-    Game::calc_point_enemy();
+    calc_acted_enemy();
+  }
+  calc_kappa();
+  if (now_turn() == 0) {
+    calc_point_enemy_0();
+  } else {
+    calc_point_enemy();
+  }
+  // point_enemy -> set_point_enemy
+  for (auto i = 0; i < PLAYER; ++i) {
+    for (auto x : current().point_enemy(i)) {
+      current().set_point_enemy(i).insert(x);
+    }
   }
 }
 

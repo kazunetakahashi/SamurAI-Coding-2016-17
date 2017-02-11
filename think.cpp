@@ -8,8 +8,9 @@ using namespace std;
 # define DEBUG 1
 
 void Game::think() {
-  Game::inform_turn();
-  Game::inform_current_and_previous();
+  inform();
+  current().evaluate();
+
   // ここから
   current().hidden_to_revealed() = false;
   current().revealed_to_hidden() = false;
@@ -25,13 +26,4 @@ void Game::think() {
     cerr << temp << endl;
 #endif
   }
-}
-
-void Game::inform_turn() {
-  for (auto k = 0; k < PLAYER; ++k) {
-    current().states(k) = initial_state(player_to_samurai(k),
-                                      current().point_samurai(k));
-  }
-  current().remove_prohibited_states();
-  current().calc_kill_enemy();
 }

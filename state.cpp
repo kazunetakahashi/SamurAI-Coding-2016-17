@@ -15,13 +15,3 @@ bool State::route_has_key(const set<Point>& S) {
   }
   return false;
 }
-
-int State::count_kill_enemy(const set<Point>& S) {
-  _kill_enemy = 0;
-  for (auto it = _paint.begin(); it != _paint.end(); ++it) {
-    if (S.find(*it) != S.end()) {
-      ++_kill_enemy;
-    }
-  }
-  return _kill_enemy;
-}

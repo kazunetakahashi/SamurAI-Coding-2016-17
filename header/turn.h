@@ -21,12 +21,14 @@ class Turn {
   Field _field;
 
   // 入力から作るもの
+  bool* _is_killed;
   std::set<Point> _set_point_samurai;
-  std::set<Point> _set_point_enemy;
+  // std::set<Point> _set_point_enemy;
 
   // 前回までの入力も踏まえて作るもの
   int _acted_enemy; // 0...2 player 型
   std::vector<Point>* _point_enemy;
+  std::set<Point>* _set_point_enemy;
   bool* _is_remained;
 
   // 思考用
@@ -53,15 +55,19 @@ public:
   bool is_visible(int samurai);
   bool has_done(int samurai) { return _has_done[samurai]; }
   bool is_hidden(int samurai) { return _is_hidden[samurai]; }
-  int treat_num(int samurai) { return _treat_num[samurai]; };
+  int treat_num(int samurai) { return _treat_num[samurai]; }
+  bool is_killed(int samurai) { return _is_killed[samurai]; }
   int field(Point p) { return _field.value(p); }
   
   std::set<Point>& set_point_samurai() { return _set_point_samurai; }
-  std::set<Point>& set_point_enemy() { return _set_point_enemy; }
+  // std::set<Point>& set_point_enemy() { return _set_point_enemy; }
 
   int& acted_enemy() { return _acted_enemy; }
   std::vector<Point>& point_enemy(int player) {
     return _point_enemy[player];
+  }
+  std::set<Point>& set_point_enemy(int player) {
+    return _set_point_enemy[player];
   }
   bool& is_remained(int player) {
     return _is_remained[player];
@@ -83,9 +89,17 @@ public:
   bool& revealed_to_hidden() { return _revealed_to_hidden; }
   std::vector<int>& act() { return _act; }
 
-  // 思考用メンバ関数
+  // eveluate.cpp
+  void evaluate();
   void remove_prohibited_states();
-  void calc_kill_enemy();
+  void calc_paint_score(State& state);
+  void calc_hidden_booleans(int& player, State& state);
+  void calc_kill_score(State& state);
+  void calc_death_prob(State& state);
+
+  // death_prob.cpp
+  static double death_prob(int player,
+                           Point p, Point q, bool is_hidden);
 
   // Field からの輸入
   bool is_perceived(int i, int j) const {

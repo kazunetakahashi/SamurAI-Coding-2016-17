@@ -10,6 +10,7 @@ Turn::Turn() : _field() {
   _has_done = new bool[Game::SAMURAI];
   _is_hidden = new bool[Game::SAMURAI];
   _treat_num = new int[Game::SAMURAI];
+  _is_killed = new bool[Game::SAMURAI];
 
   _kappa = new bool***[_Kappatypesize_];
   for (auto k = 0; k < _Kappatypesize_; ++k) {
@@ -76,13 +77,20 @@ void Turn::input() {
     if (is_visible(i)) {
       _set_point_samurai.insert(point_samurai(i));
     }
+    if (treat_num(i) != 0) {
+      _is_killed[i] = true;
+    } else {
+      _is_killed[i] = false;
+    }
   }
+  /*
   for (auto i = 0; i < Game::PLAYER; ++i) {
     int enemy = Game::player_to_enemy(i);
     if (is_visible(enemy)) {
       _set_point_enemy.insert(point_samurai(enemy));
     }
   }
+  */
 }
 
 void Turn::output() {
@@ -103,20 +111,7 @@ bool Turn::is_visible(int samurai) {
   return point_samurai(samurai) != Game::INVISIBLE;
 }
 
-void Turn::remove_prohibited_states() {
-  for (auto i = 0; i < Game::PLAYER; ++i) {
-    if (has_done(i)) continue;
-    auto it = _states[i].begin();
-    while (it != _states[i].end()) {
-      if (it->route_has_key(_set_point_samurai)) {
-        it = _states[i].erase(it);
-      } else {
-        ++it;
-      }
-    }
-  }
-}
-
+/*
 void Turn::calc_kill_enemy() {
   for (auto i = 0; i < Game::PLAYER; ++i) {
     if (has_done(i)) continue;
@@ -125,3 +120,4 @@ void Turn::calc_kill_enemy() {
     }
   }  
 }
+*/
