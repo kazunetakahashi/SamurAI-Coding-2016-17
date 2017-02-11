@@ -11,8 +11,8 @@ Turn::Turn() : _field() {
   _is_hidden = new bool[Game::SAMURAI];
   _treat_num = new int[Game::SAMURAI];
 
-  _kappa = new bool***[3];
-  for (auto k = 0; k < 3; ++k) {
+  _kappa = new bool***[_Kappatypesize_];
+  for (auto k = 0; k < _Kappatypesize_; ++k) {
     _kappa[k] = new bool**[Game::PLAYER];
     for (auto i = 0; i < Game::PLAYER; ++i) {
       _kappa[k][i] = new bool*[Game::FIELD];
@@ -38,7 +38,7 @@ Turn::~Turn() {
   delete[] _is_hidden;
   delete[] _treat_num;
   
-  for (auto k = 0; k < 3; ++k) {
+  for (auto k = 0; k < _Kappatypesize_; ++k) {
     for (auto i = 0; i < Game::PLAYER; ++i) {
       for (auto j = 0; j < Game::FIELD; ++j) {
         delete[] _kappa[k][i][j];

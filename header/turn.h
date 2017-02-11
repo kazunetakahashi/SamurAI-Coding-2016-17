@@ -8,6 +8,9 @@
 #include "field.h"
 #include "state.h"
 
+enum Kappatype { _Lying_, _Painted_, _Watched_, _Kept_,
+                 _Kappatypesize_ };
+
 class Turn {
   // 入力
   int _turn_num; // 使わない
@@ -22,8 +25,7 @@ class Turn {
   std::set<Point> _set_point_enemy;
 
   // 前回までの入力も踏まえて作るもの
-  int _acted_enemy;
-  bool**** _kappa;
+  int _acted_enemy; // 0...2 player 型
   std::vector<Point>* _point_enemy;
   bool* _is_remained;
 
@@ -31,6 +33,7 @@ class Turn {
   bool** _beta;
   std::vector<Point> _gamma;
   std::vector<Point> _delta;
+  bool**** _kappa;
   std::vector<State>* _states;
 
   // 出力
@@ -57,13 +60,6 @@ public:
   std::set<Point>& set_point_enemy() { return _set_point_enemy; }
 
   int& acted_enemy() { return _acted_enemy; }
-  bool& kappa(int type, int player, int x, int y) {
-    return _kappa[type][player][x][y];
-  }
-  bool& kappa(int type, int player, Point p) {
-    return kappa(type, player, p.x(), p.y());
-  }
-
   std::vector<Point>& point_enemy(int player) {
     return _point_enemy[player];
   }
@@ -75,6 +71,12 @@ public:
   bool& beta(Point p) { return beta(p.x(), p.y()); }
   std::vector<Point>& gamma() { return _gamma; }
   std::vector<Point>& delta() { return _delta; }
+  bool& kappa(Kappatype type, int player, int x, int y) {
+    return _kappa[type][player][x][y];
+  }
+  bool& kappa(Kappatype type, int player, Point p) {
+    return kappa(type, player, p.x(), p.y());
+  }
   std::vector<State>& states(int player) { return _states[player]; }
   int& actor() { return _actor; }
   bool& hidden_to_revealed() { return _hidden_to_revealed; }
@@ -113,12 +115,14 @@ public:
 
 
   // メンバ関数で表現されるギリシア文字
+  /*
   bool lambda(int i, int j) {
     return is_perceived(i, j) && !is_occupied_by_enemy(i, j);
   }
   bool lambda(Point p) {
     return lambda(p.x(), p.y());
   }
+  */
 
 };
 

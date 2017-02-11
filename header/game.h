@@ -3,13 +3,23 @@
 
 #include <vector>
 #include <random>
+#include <tuple>
+#include <queue>
 
 #include "point.h"
 #include "field.h"
 #include "state.h"
 #include "turn.h"
 
-enum Command {_Paint_, _Move_, _Hide_};
+enum Command {_Paint_, _Move_, _Hide_,
+              _Commandsize_};
+
+// calc_point_enemy_by_dijkstra まわり
+enum Passtype { _Inpuku_, _Kengen_, _Dochirademo_,
+                _Passtypesize_ };
+typedef std::tuple<int, Passtype, Point> Pass; // cost, Passtype, Point
+typedef std::priority_queue<Pass, std::vector<Pass>,
+                            std::greater<Pass> > Pqueue;
 
 class Game {
   bool _is_sente;
@@ -77,7 +87,7 @@ public:
   void calc_point_enemy();
   void calc_point_enemy_0();
   void calc_point_enemy_acted(int player);
-  void calc_point_enemy_by_dijkstra(int player, std::vector<Point>& V);
+  void calc_point_enemy_by_dijkstra(int player, Pqueue& Q);
   void calc_point_enemy_by_sat(int player);
 };
 
