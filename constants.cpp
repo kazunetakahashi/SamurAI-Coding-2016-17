@@ -47,6 +47,7 @@ const Point Game::HOUSE[6] = {
 };
 
 const int Game::REACH[3] = {5, 3, 2};
+const int Game::EYE = 5;
 
 const Point Game::INVISIBLE = Point(-1, -1);
 

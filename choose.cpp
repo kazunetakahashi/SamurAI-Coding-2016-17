@@ -26,7 +26,7 @@ void Turn::choose() {
   }
 }
 
-void Turn::set_act(int player, vector<int>& act, bool h_r, bool r_h) {
+void Turn::set_act(int player, vector<int> act, bool h_r, bool r_h) {
   _actor = player;
   _act = act;
   _hidden_to_revealed = h_r;

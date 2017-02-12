@@ -9,6 +9,7 @@
 class State {
   // 行動の内容
   int _player;
+  int _samurai;
   std::vector<Point> _route;
   std::vector<Point> _paint;
   std::set<Point> _set_paint;
@@ -30,25 +31,35 @@ class State {
   double _total_death_prob_revealed;
   double _total_death_prob_hidden;
   double _final_death_prob;
+  double _total_eye_prob;
+  double _final_place_score;
 
 public:
+  // 定数 inform.cpp
+  static const int MAX_PLACE_ENEMY;
+  static const double MIN_BASE_PROB;
   // 定数 evaluate.cpp
   static const double SCORE_PAINT_EMPTY;
   static const double SCORE_PAINT_ENEMY;
+  static const double SCORE_PRE_PAINT_UNKNOWN;
   static const double SCORE_PRE_PAINT_EMPTY;
   static const double SCORE_PRE_PAINT_ENEMY;
   static const double MAX_DEATH_PROB;
+  static const double MAX_EYE_PROB;
   static const double RATE_ESTIMATED_KILL;
   static const double RATE_CONFIRMED_KILL;
   static const double RATE_DEATH;
+  static const double RATE_PLACE;
+  static const Point TARGET_POINT[];
   
   State() {};
-  State(int player, Point p, int cost)
-    : _player(player), _initial_cost(cost) {
+  State(int player, int samurai, Point p, int cost)
+    : _player(player), _samurai(samurai), _initial_cost(cost) {
     _route.push_back(p);
   };
   State(const State& state) {
     _player = state._player;
+    _samurai = state._samurai;
     _route = state._route;
     _paint = state._paint;
     _set_paint = state._set_paint;
@@ -59,6 +70,7 @@ public:
   // const でないと怒られるやつは friend で処理する。
   // 本当はよくない。名前分けたくないからこうする。
   int& player() { return _player; }
+  int& samurai() { return _samurai; }
   std::vector<Point>& route() { return _route; }
   std::vector<Point>& paint() { return _paint; }
   std::set<Point>& set_paint() { return _set_paint; }
@@ -90,6 +102,10 @@ public:
   double& final_death_prob() {
     return _final_death_prob;
   }
+  double& total_eye_prob() {
+    return _total_eye_prob;
+  }
+  double& final_place_score() { return _final_place_score; }
   // スコアの低い方から順に並べる choose.cpp
   // 高い方から並べるには reverse する。
   // 今のところ使っていない。

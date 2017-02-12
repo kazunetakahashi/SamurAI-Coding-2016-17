@@ -78,7 +78,7 @@ void Game::init() {
       _initial_state[k][i] = new vector<State>[FIELD];
       for (auto j = 0; j < FIELD; ++j) {
         priority_queue<State, vector<State>, greater<State> > Q;
-        State nothing(player, Point(i, j), 0);
+        State nothing(player, k, Point(i, j), 0);
         Q.push(nothing);
         while (!Q.empty()) {
           State now = Q.top();

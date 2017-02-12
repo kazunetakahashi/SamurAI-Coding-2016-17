@@ -110,13 +110,17 @@ public:
   void calc_hidden_booleans(State& state);
   void calc_kill_score(State& state);
   void calc_death_prob(State& state);
+  void calc_eye_prob(State& state);
+  void calc_place_score(State& state);
   void calc_total_score(State& state);
   // death_prob.cpp
   static double death_prob(int player,
                            Point p, Point q, bool is_hidden);
+  static double eye_prob(Point p, Point q);
+  static double target_dist(int samurai, Point p);
   // choose.cpp
   void choose();
-  void set_act(int player, std::vector<int>& act, bool h_r, bool r_h);
+  void set_act(int player, std::vector<int> act, bool h_r, bool r_h);
   void trivial_act(int player);
   void choose_actor_and_act();
 

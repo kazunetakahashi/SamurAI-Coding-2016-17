@@ -4,6 +4,7 @@ using namespace std;
 
 const double State::SCORE_PAINT_EMPTY = 100.0;
 const double State::SCORE_PAINT_ENEMY = 110.0;
+const double State::SCORE_PRE_PAINT_UNKNOWN = 50.0;
 const double State::SCORE_PRE_PAINT_EMPTY = 70.0;
 const double State::SCORE_PRE_PAINT_ENEMY = 80.0;
 
@@ -19,6 +20,8 @@ void Turn::evaluate() {
       calc_hidden_booleans(*it);
       calc_kill_score(*it);
       calc_death_prob(*it);
+      calc_eye_prob(*it);
+      calc_place_score(*it);
       calc_total_score(*it);
       it++;
     }
@@ -59,17 +62,26 @@ double Turn::calc_pre_paint_score(State& state) {
   }
   table_pre_paint_score(player, goal) = 0.0;
   for (auto k = 0; k < Game::DIRECTION; ++k) {
+    double temp = 0.0;
     for (auto x : Game::_initial_paint[player][goal.x()][goal.y()][k]) {
       if (is_occupied_by_enemy(x)) {
         if (state.set_paint().find(x) == state.set_paint().end()) {
-          table_pre_paint_score(player, goal) += State::SCORE_PRE_PAINT_ENEMY;
+          temp += State::SCORE_PRE_PAINT_ENEMY;
         }
-      } else if (is_perceived(x) && !is_occupied_by_player(x)) {
+      } else if (is_perceived(x)) {
+        if (!is_occupied_by_player(x)) {
+          if (state.set_paint().find(x) == state.set_paint().end()) {
+            temp += State::SCORE_PRE_PAINT_EMPTY;
+          }
+        }
+      } else {
         if (state.set_paint().find(x) == state.set_paint().end()) {
-          table_pre_paint_score(player, goal) += State::SCORE_PRE_PAINT_EMPTY;
+          temp += State::SCORE_PRE_PAINT_UNKNOWN;
         }
       }
     }
+    table_pre_paint_score(player, goal)
+      = max(table_pre_paint_score(player, goal), temp);
   }
   return table_pre_paint_score(player, goal);
 }
@@ -109,17 +121,16 @@ void Turn::calc_hidden_booleans(State& state) {
 }
 
 void Turn::calc_kill_score(State& state) {
-  state.estimated_kill_score() = 0;
+  state.estimated_kill_score() = 0.0;
   for (auto i = 0; i < Game::PLAYER; ++i) {
     if (_is_killed[Game::player_to_enemy(i)]) continue;
     int kill_space = 0;
-    for (auto x : state.route()) {
+    for (auto x : state.paint()) {
       if (_set_point_enemy[i].find(x) != _set_point_enemy[i].end()) {
         ++kill_space;
       }
     }
-    state.estimated_kill_score()
-      += kill_space/(double)(_set_point_enemy[i].size());
+    state.estimated_kill_score() += kill_space * _base_prob[i];
     if (kill_space == (int)_set_point_enemy[i].size()) {
       state.killed_enemy().insert(i);
     }
@@ -128,40 +139,67 @@ void Turn::calc_kill_score(State& state) {
 
 void Turn::calc_death_prob(State& state) {
   double death[2][Game::PLAYER];
-  for (auto player = 0; player < Game::PLAYER; ++player) {
-    death[0][player] = 0.0;
-    death[1][player] = 0.0;
-    if (is_killed(Game::player_to_enemy(player))
-        || state.killed_enemy().find(player)
-        != state.killed_enemy().end()) {
-      // 0.0 のまま
-    } else {
-      for (auto x : _point_enemy[player]) {
-        if (state.set_paint().find(x) == state.set_paint().end()) {
-          death[0][player]
-            += death_prob(player, x, state.goal(), false);
-          death[1][player]
-            += death_prob(player, x, state.goal(), true);
-        }
-      }
-      death[0][player] *= _base_prob[player];
-      death[1][player] *= _base_prob[player];
-    }
-  }
   double total_death_one_minus[2] = { 1.0, 1.0 };
   for (auto i = 0; i < 2; ++i) {
     for (auto player = 0; player < Game::PLAYER; ++player) {
+      death[i][player] = 0.0;
+      if (is_killed(Game::player_to_enemy(player))
+          || state.killed_enemy().find(player)
+          != state.killed_enemy().end()) {
+        // 0.0 のまま
+      } else {
+        for (auto x : _point_enemy[player]) {
+          if (state.set_paint().find(x) == state.set_paint().end()) {
+            death[i][player]
+              += death_prob(player, x, state.goal(), i);
+          }
+        }
+        death[i][player] *= _base_prob[player];
+        if (death[i][player] >= 1.0) death[i][player] = 1.0;
+      }
       total_death_one_minus[i] *= 1.0 - death[i][player];
     }
   }
   state.total_death_prob_revealed() = 1.0 - total_death_one_minus[0];
   state.total_death_prob_hidden() = 1.0 - total_death_one_minus[1];
 }
-const double State::MAX_DEATH_PROB = 0.2;
 
+void Turn::calc_eye_prob(State& state) {
+  double eye[Game::PLAYER];
+  double total_eye_one_minus = 1.0;
+  for (auto player = 0; player < Game::PLAYER; ++player) {
+    eye[player] = 0.0;
+    if (is_killed(Game::player_to_enemy(player))
+        || state.killed_enemy().find(player)
+        != state.killed_enemy().end()
+        || (int)_point_enemy[player].size() > State::MAX_PLACE_ENEMY) {
+      // 0.0 のまま
+    } else {
+      for (auto x : _point_enemy[player]) {
+        if (state.set_paint().find(x) == state.set_paint().end()) {
+          eye[player] += eye_prob(x, state.goal());
+        }
+      }
+      eye[player] *= _base_prob[player];
+      if (eye[player] >= 1.0) eye[player] = 1.0;
+    }
+    total_eye_one_minus *= 1.0 - eye[player];
+  }
+  state.total_eye_prob() = 1.0 - total_eye_one_minus;
+}
+
+void Turn::calc_place_score(State& state) {
+  state.final_place_score()
+    = 2.0 * ((double)Game::FIELD)
+    - target_dist(state.samurai(), state.goal());
+}
+
+const double State::MAX_DEATH_PROB = 0.2;
+const double State::MAX_EYE_PROB = 0.3;
 const double State::RATE_ESTIMATED_KILL = 70.0;
 const double State::RATE_CONFIRMED_KILL = 180.0;
 const double State::RATE_DEATH = 200.0; // 負で作用する
+const double State::RATE_PLACE = 25.0;
 
 void Turn::calc_total_score(State& state) {
   if (state.normal_hidden()) {
@@ -169,12 +207,13 @@ void Turn::calc_total_score(State& state) {
     state.final_hidden() = true;
   } else {
     if (state.can_revealed_to_hidden()) {
-      if (state.total_death_prob_revealed() <= State::MAX_DEATH_PROB) {
+      if (state.total_eye_prob() <= State::MAX_EYE_PROB
+          && state.total_death_prob_revealed() <= State::MAX_DEATH_PROB) {
         state.decided_revealed_to_hidden() = false;
         state.final_hidden() = false;
       } else {
         state.decided_revealed_to_hidden() = true;
-        state.final_hidden() = false;
+        state.final_hidden() = true;
       }
     } else {
       state.decided_revealed_to_hidden() = false;
@@ -186,13 +225,16 @@ void Turn::calc_total_score(State& state) {
   } else {
     state.final_death_prob() = state.total_death_prob_revealed();
   }
-  if (state.final_death_prob() > State::MAX_DEATH_PROB) {
+  if (state.final_death_prob() > State::MAX_DEATH_PROB
+      || (!state.final_hidden()
+          && state.total_eye_prob() > State::MAX_EYE_PROB)) {
     state.total_score() = -1 * state.final_death_prob();
   } else {
     state.total_score()
       = state.paint_score() + state.pre_paint_score()
       + state.estimated_kill_score() * State::RATE_ESTIMATED_KILL
       + state.confirmed_kill_score() * State::RATE_CONFIRMED_KILL
-      - state.final_death_prob() * State::RATE_DEATH;
+      - state.final_death_prob() * State::RATE_DEATH
+      + state.final_place_score() * State::RATE_PLACE;
   }
 }

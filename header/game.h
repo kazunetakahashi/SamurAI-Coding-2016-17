@@ -48,6 +48,7 @@ public:
   const static std::vector<Point> PAINT[];
   const static Point HOUSE[];
   const static int REACH[];
+  const static int EYE;
   const static Point INVISIBLE;
   const static Point dx[];
   static int command(int dir, Command obj);

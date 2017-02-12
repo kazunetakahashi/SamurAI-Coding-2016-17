@@ -41,4 +41,6 @@ void State::debug() {
        << _total_death_prob_revealed << endl;
   cerr << "_total_death_prob_hidden : " << _total_death_prob_hidden << endl;
   cerr << "_final_death_prob : " << _final_death_prob << endl;
+  cerr << "_total_eye_prob : " << _total_eye_prob << endl;
+  cerr << "_final_place_score : " << _final_place_score << endl;
 }

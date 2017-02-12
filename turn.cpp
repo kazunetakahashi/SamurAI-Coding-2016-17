@@ -37,6 +37,9 @@ Turn::Turn() : _field() {
     _table_pre_paint_score[i] = new double*[Game::FIELD];
     for (auto j = 0; j < Game::FIELD; ++j) {
       _table_pre_paint_score[i][j] = new double[Game::FIELD];
+      for (auto k = 0; k < Game::FIELD; ++k) {
+        _table_pre_paint_score[i][j][k] = -1.0;
+      }
     }
   }
 }
@@ -106,7 +109,6 @@ void Turn::input() {
       _done_enemy.insert(i);
     }
   }
-
 }
 
 void Turn::output() {

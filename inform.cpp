@@ -9,6 +9,9 @@ using namespace std;
 
 #define DEBUG 1
 
+const int State::MAX_PLACE_ENEMY = 10;
+const double State::MIN_BASE_PROB = 1.0/(double)State::MAX_PLACE_ENEMY;
+
 void Game::inform() {
   for (auto k = 0; k < PLAYER; ++k) {
     current().states(k)
@@ -27,11 +30,20 @@ void Game::inform() {
   }
   // point_enemy -> set_point_enemy, base_prob
   for (auto i = 0; i < PLAYER; ++i) {
+#if DEBUG == 1
+    if (current().point_enemy(i).empty()) {
+      cerr << "point_enemy(" << i << ") is empty." << endl;
+      cerr << current() << endl;
+      assert(false);
+    }
+#endif
     for (auto x : current().point_enemy(i)) {
       current().set_point_enemy(i).insert(x);
     }
-    assert(!current().point_enemy(i).empty());
     current().base_prob(i) = 1.0/(double)current().point_enemy(i).size();
+    if (current().base_prob(i) <= State::MIN_BASE_PROB) {
+      current().base_prob(i) = State::MIN_BASE_PROB;
+    }
   }
 }
 
@@ -57,7 +69,7 @@ int Game::calc_acted_enemy() {
       }
     }
   }
-  assert(false);
+  // assert(false); 相手は行動しなかった。
   return current().acted_enemy() = -1;
 }
 
@@ -172,19 +184,36 @@ void Game::calc_point_enemy_acted(int player) {
       }
     }
   }
+#if DEBUG == 1
+  cerr << "gamma : ";
+  for (auto x : current().gamma()) {
+    cerr << x << " ";
+  }
+  cerr << endl;
+#endif
   if (current().gamma().empty()) {
     Pqueue Q;
-    for (auto x : previous().point_enemy(player)) {
-      if (previous().kappa(_Lying_, player, x)) {
-        if (previous().kappa(_Painted_, player, x)) {
-          Q.push(Pass(0, _Inpuku_, x));
-        } else {
-          Q.push(Pass(0, _Dochirademo_, x));
+    if (previous().is_remained(player)) {
+      Q.push(Pass(0, _Kengen_, *(previous().point_enemy(player).begin())));
+    } else {
+      for (auto x : previous().point_enemy(player)) {
+        if (previous().kappa(_Lying_, player, x)) {
+          if (previous().kappa(_Painted_, player, x)) {
+            Q.push(Pass(0, _Inpuku_, x));
+          } else {
+            Q.push(Pass(0, _Dochirademo_, x));
+          }
         }
       }
-    }
+    } 
+#if DEBUG == 1
+    cerr << "by dijkstra." << endl;
+#endif
     calc_point_enemy_by_dijkstra(player, Q);
   } else {
+#if DEBUG == 1
+    cerr << "by sat." << endl;
+#endif
     calc_point_enemy_by_sat(player);
   }
 }
@@ -263,6 +292,13 @@ void Game::calc_point_enemy_by_sat(int player) {
       }
     }
   }
+#if DEBUG == 1
+  cerr << "delta : ";
+  for (auto x : current().delta()) {
+    cerr << x << " ";
+  }
+  cerr << endl;
+#endif
   bool s_kouho[Game::FIELD][Game::FIELD];
   fill(&s_kouho[0][0], &s_kouho[0][0]+(Game::FIELD*Game::FIELD), 0);
   for (auto x : previous().point_enemy(player)) {
@@ -288,26 +324,42 @@ void Game::calc_point_enemy_by_sat(int player) {
   for (auto i = 0; i < Game::FIELD; ++i) {
     for (auto j = 0; j < Game::FIELD; ++j) {
       if (g_kouho[i][j]) {
+#if DEBUG == 1
+        cerr << "We are checking " << Point(i, j) << endl;
+#endif
         for (auto k = 0; k < Game::DIRECTION; ++k) {
           vector<Point>& V = _initial_paint[player][i][j][k];
           set<Point>& S = _set_initial_paint[player][i][j][k];
           bool ok = true;
           for (auto x : V) {
-            if (x.is_paintable() && current().beta(x)) {
+            if (current().beta(x)) {
+#if DEBUG == 1
+            cerr << x << " cannot be painted" << endl;
+#endif
               ok = false;
               break;
             }
           }
-          if (!ok) continue;
+          if (!ok) {
+            continue;
+          }
           for (auto x : current().gamma()) {
             if (S.find(x) == S.end()) {
+#if DEBUG == 1
+            cerr << x << " must be painted" << endl;
+#endif
               ok = false;
               break;
             }
           }
-          if (!ok) continue;
+          if (!ok) {
+            continue;
+          }
           for (auto x : current().delta()) {
             if (S.find(x) != S.end()) {
+#if DEBUG == 1
+            cerr << x << " cannot be painted" << endl;
+#endif
               ok = false;
               break;
             }
@@ -324,19 +376,36 @@ void Game::calc_point_enemy_by_sat(int player) {
   if (previous().is_remained(player)) {
     current().point_enemy(player) = d_kouho;
   } else {
+    set<Point> temp;
     for (auto p : d_kouho) {
       if (s_kouho[p.x()][p.y()]) {
+        // p はスタート地点
+        // そのまま、p はゴール地点でありえる。
         current().point_enemy(player).push_back(p);
-      } else {
+        // p の隣がゴール地点の場合
         for (auto k = 0; k < Game::DIRECTION; ++k) {
-          Point q = p + dx[k];
-          if (q.is_valid() && s_kouho[q.x()][q.y()]
-              && !previous().kappa(_Painted_, player, q)) {
-            current().point_enemy(player).push_back(p);
+          Point goal = p + dx[k];
+          if (goal.is_valid() && g_kouho[goal.x()][goal.y()]
+              && (!previous().kappa(_Painted_, player, p)
+                  || !current().kappa(_Painted_, player, goal))) {
+            temp.insert(goal);
+          }
+        }
+      } else {
+        // p はゴール地点
+        for (auto k = 0; k < Game::DIRECTION; ++k) {
+          Point start = p + dx[k];
+          if (start.is_valid() && s_kouho[start.x()][start.y()]
+              && (!previous().kappa(_Painted_, player, start)
+                  || !current().kappa(_Painted_, player, p))) {
+            temp.insert(p);
             break;
           }
         }
       }
+    }
+    for (auto x : temp) {
+      current().point_enemy(player).push_back(x);
     }
   }
 }
