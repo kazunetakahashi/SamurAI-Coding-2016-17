@@ -40,6 +40,7 @@ class Turn {
   bool**** _kappa;
   std::vector<State>* _states;
   double*** _table_pre_paint_score;
+  double* _initial_death_prob;
 
   // 出力
   int _actor;
@@ -96,6 +97,9 @@ public:
   double& table_pre_paint_score(int player, const Point p) {
     return table_pre_paint_score(player, p.x(), p.y());
   }
+  double& initial_death_prob(int player) {
+    return _initial_death_prob[player];
+  }
   
   int& actor() { return _actor; }
   bool& hidden_to_revealed() { return _hidden_to_revealed; }
@@ -123,6 +127,7 @@ public:
   void set_act(int player, std::vector<int> act, bool h_r, bool r_h);
   void trivial_act(int player);
   void choose_actor_and_act();
+  void calc_initial_death_prob();
 
   // Field からの輸入
   bool is_perceived(int i, int j) const {

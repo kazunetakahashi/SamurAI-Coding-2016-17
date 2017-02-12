@@ -42,6 +42,7 @@ Turn::Turn() : _field() {
       }
     }
   }
+  _initial_death_prob = new double[Game::PLAYER];
 }
 
 Turn::~Turn() {
@@ -78,6 +79,7 @@ Turn::~Turn() {
     delete[] _table_pre_paint_score[i];
   }
   delete[] _table_pre_paint_score;
+  delete[] _initial_death_prob;
 }
 
 void Turn::input() {

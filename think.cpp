@@ -1,3 +1,5 @@
+#define NDEBUG
+
 #include <random>
 #include <cassert>
 #include <chrono>
@@ -8,7 +10,7 @@
 
 using namespace std;
 
-# define DEBUG 1
+# define DEBUG 0
 
 void Game::think() {
 #if DEBUG == 1

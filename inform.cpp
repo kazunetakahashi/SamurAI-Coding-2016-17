@@ -1,3 +1,5 @@
+#define NDEBUG
+
 #include <algorithm>
 #include <tuple>
 #include <queue>
@@ -7,7 +9,7 @@
 
 using namespace std;
 
-#define DEBUG 1
+#define DEBUG 0
 
 const int State::MAX_PLACE_ENEMY = 10;
 const double State::MIN_BASE_PROB = 1.0/(double)State::MAX_PLACE_ENEMY;

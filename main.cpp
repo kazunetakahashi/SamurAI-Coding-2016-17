@@ -2,7 +2,7 @@
 #include <vector>
 #include "header/game.h"
 
-#define DEBUG 1 // change 0 -> 1 if we need debug.
+#define DEBUG 0 // change 0 -> 1 if we need debug.
 
 using namespace std;
 

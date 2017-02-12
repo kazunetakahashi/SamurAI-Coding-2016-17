@@ -8,7 +8,7 @@ const double State::SCORE_PRE_PAINT_UNKNOWN = 50.0;
 const double State::SCORE_PRE_PAINT_EMPTY = 70.0;
 const double State::SCORE_PRE_PAINT_ENEMY = 80.0;
 
-#define DEBUG 1
+#define DEBUG 0
 
 void Turn::evaluate() {
   remove_prohibited_states();
