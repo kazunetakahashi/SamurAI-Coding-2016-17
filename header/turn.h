@@ -14,7 +14,7 @@ enum Kappatype { _Lying_, _Painted_, _Watched_, _Kept_,
 
 class Turn {
   // 入力
-  int _turn_num; // 使わない
+  int _turn_num;
   Point* _point_samurai;
   bool* _has_done;
   bool* _is_hidden;

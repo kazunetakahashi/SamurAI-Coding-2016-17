@@ -113,7 +113,10 @@ void Turn::calc_hidden_booleans(State& state) {
     state.need_cost() = state.initial_cost();
   }
   if ((!_is_hidden[state.player()] || state.need_hidden_to_revealed())
-      && state.need_cost() < Game::MAX_COST) {
+      && state.need_cost() < Game::MAX_COST
+      && (is_occupied_by_player(state.goal())
+          || state.set_paint().find(state.goal())
+             != state.set_paint().end())) {
     state.can_revealed_to_hidden() = true;
   } else {
     state.can_revealed_to_hidden() = false;
@@ -171,8 +174,12 @@ void Turn::calc_eye_prob(State& state) {
     eye[player] = 0.0;
     if (is_killed(Game::player_to_enemy(player))
         || state.killed_enemy().find(player)
-        != state.killed_enemy().end()
-        || (int)_point_enemy[player].size() > State::MAX_PLACE_ENEMY) {
+        != state.killed_enemy().end()       
+        ) {
+      // 0.0 のまま
+    } else if (_turn_num >= 42
+               && (int)_point_enemy[player].size()
+               > State::MAX_PLACE_ENEMY) {
       // 0.0 のまま
     } else {
       for (auto x : _point_enemy[player]) {
@@ -195,7 +202,7 @@ void Turn::calc_place_score(State& state) {
 }
 
 const double State::MAX_DEATH_PROB = 0.2;
-const double State::MAX_EYE_PROB = 0.3;
+const double State::MAX_EYE_PROB = 0.2;
 const double State::RATE_ESTIMATED_KILL = 70.0;
 const double State::RATE_CONFIRMED_KILL = 180.0;
 const double State::RATE_DEATH = 200.0; // 負で作用する

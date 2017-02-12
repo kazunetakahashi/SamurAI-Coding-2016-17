@@ -11,7 +11,7 @@ using namespace std;
 
 #define DEBUG 0
 
-const int State::MAX_PLACE_ENEMY = 10;
+const int State::MAX_PLACE_ENEMY = 20;
 const double State::MIN_BASE_PROB = 1.0/(double)State::MAX_PLACE_ENEMY;
 
 void Game::inform() {
